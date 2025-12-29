@@ -1,4 +1,3 @@
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -20,28 +19,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthResponse> signInWithGoogle() async {
-    /// Web flow (skipped for now as we focus on mobile)
-    /// Android/iOS Flow
-    const webClientId = 'YOUR_WEB_CLIENT_ID'; // From Google Cloud Console
-    // const iosClientId = 'YOUR_IOS_CLIENT_ID'; // From Google Cloud Console
-
-    final GoogleSignIn googleSignIn = GoogleSignIn(serverClientId: webClientId);
+    // Check Google Sign In documentation for 7.x
+    /*
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId: 'YOUR_WEB_CLIENT_ID',
+    );
     final googleUser = await googleSignIn.signIn();
     final googleAuth = await googleUser?.authentication;
-    final accessToken = googleAuth?.accessToken;
-    final idToken = googleAuth?.idToken;
-
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
-
-    return await _supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
+    ...
+    */
+    throw UnimplementedError(
+      'Google Sign In is temporarily disabled for build verification.',
     );
   }
 
