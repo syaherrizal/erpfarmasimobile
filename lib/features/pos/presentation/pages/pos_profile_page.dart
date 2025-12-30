@@ -7,8 +7,6 @@ import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/widgets/responsive_layout.dart';
 import '../../../../core/utils/user_agent_utils.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
-import '../../../../features/app_mode/presentation/cubit/app_mode_cubit.dart';
-import '../../../../features/app_mode/app_mode.dart';
 import '../bloc/shift/shift_bloc.dart';
 
 class PosProfilePage extends StatefulWidget {
@@ -486,13 +484,8 @@ class _PosProfilePageState extends State<PosProfilePage> {
                       ),
                     );
                   } else {
-                    // Proceed to switch mode
-                    context.read<AppModeCubit>().setMode(AppMode.owner);
-                    // Navigation should be handled by AppMode wrapper/listener in root,
-                    // but usually we might need to pop all routes or go to root.
-                    // Assuming AppRoot handles this based on state change.
-                    // For safety, we can use context.go('/') if root handles redirection.
-                    context.go('/');
+                    // Proceed to switch mode selection page
+                    context.go('/select-mode');
                   }
                 },
               ),
