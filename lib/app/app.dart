@@ -7,6 +7,7 @@ import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_cubit.dart';
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/permission/permission_cubit.dart';
 import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
+import 'package:erpfarmasimobile/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:erpfarmasimobile/app/router/app_router.dart';
 import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
@@ -25,6 +26,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<PermissionCubit>()),
         BlocProvider(create: (_) => di.sl<BranchContextCubit>()),
         BlocProvider(create: (_) => di.sl<ThemeCubit>()),
+        BlocProvider(create: (_) => di.sl<ProfileBloc>()),
       ],
       child: const AppView(),
     );

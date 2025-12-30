@@ -29,6 +29,9 @@ import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sy
 import 'package:erpfarmasimobile/features/owner/data/repositories/owner_repository_impl.dart';
 import 'package:erpfarmasimobile/features/owner/domain/repositories/owner_repository.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
+import 'package:erpfarmasimobile/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:erpfarmasimobile/features/profile/domain/repositories/profile_repository.dart';
+import 'package:erpfarmasimobile/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
@@ -117,4 +120,10 @@ Future<void> init() async {
   //! Features - Organization & Permission
   sl.registerFactory(() => OrganizationContextCubit(sl()));
   sl.registerFactory(() => PermissionCubit(sl()));
+
+  //! Features - Profile
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(sl()),
+  );
+  sl.registerFactory(() => ProfileBloc(sl()));
 }
