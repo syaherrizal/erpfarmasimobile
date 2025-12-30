@@ -43,11 +43,27 @@ class TransactionModel extends HiveObject {
   @HiveField(4)
   String status; // 'pending', 'synced'
 
+  @HiveField(5)
+  final String organizationId;
+
+  @HiveField(6)
+  final String branchId;
+
+  @HiveField(7)
+  final String cashierId;
+
+  @HiveField(8)
+  final String paymentMethod;
+
   TransactionModel({
     required this.id,
     required this.createdAtEpoch,
     required this.totalAmount,
     required this.items,
     this.status = 'pending',
+    required this.organizationId,
+    required this.branchId,
+    required this.cashierId,
+    required this.paymentMethod,
   });
 }

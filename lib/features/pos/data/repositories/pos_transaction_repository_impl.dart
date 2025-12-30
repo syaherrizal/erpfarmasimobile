@@ -43,16 +43,16 @@ class PosTransactionRepositoryImpl implements PosTransactionRepository {
         final headerResponse = await _supabase
             .from('transactions')
             .insert({
-              'organization_id': 'ORG_ID_PLACEHOLDER', // TODO: Get from session
-              'branch_id': 'BRANCH_ID_PLACEHOLDER', // TODO: Get from session
-              'transaction_number':
-                  'TRX-${transaction.id}', // Simple generation
+              'organization_id': transaction.organizationId,
+              'branch_id': transaction.branchId,
+              'transaction_number': 'TRX-${transaction.id}',
               'total_amount': transaction.totalAmount,
+              'payment_method': transaction.paymentMethod,
+              'cashier_id': transaction.cashierId,
               'created_at': DateTime.fromMillisecondsSinceEpoch(
                 transaction.createdAtEpoch,
               ).toIso8601String(),
               'sync_status': 'synced',
-              // Other required fields...
             })
             .select()
             .single();

@@ -1,1 +1,1 @@
-enum AppMode { pos, owner }
+enum AppMode { pos, owner, manager }

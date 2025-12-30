@@ -6,7 +6,16 @@ import '../widgets/payment_dialog.dart';
 import '../../data/models/hive/transaction_model.dart';
 
 class CartView extends StatelessWidget {
-  const CartView({super.key});
+  final String organizationId;
+  final String branchId;
+  final String cashierId;
+
+  const CartView({
+    super.key,
+    required this.organizationId,
+    required this.branchId,
+    required this.cashierId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +103,9 @@ class CartView extends StatelessWidget {
                                   ),
                                 )
                                 .toList(),
+                            organizationId: organizationId,
+                            branchId: branchId,
+                            cashierId: cashierId,
                           ),
                         );
 

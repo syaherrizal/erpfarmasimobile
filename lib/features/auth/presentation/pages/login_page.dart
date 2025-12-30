@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/di/injection.dart';
 import '../bloc/auth/auth_bloc.dart';
 
 class LoginPage extends StatelessWidget {
@@ -9,10 +8,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>(),
-      child: const LoginView(),
-    );
+    return const LoginView();
   }
 }
 
@@ -50,14 +46,7 @@ class _LoginViewState extends State<LoginView> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            // Check AppMode based on role logic later.
-            // For now, redirect to POS as default or check profile
-            final role = state.profile?['role']?['name'];
-            if (role == 'owner') {
-              context.go('/owner');
-            } else {
-              context.go('/pos');
-            }
+            context.go('/select-mode');
           } else if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

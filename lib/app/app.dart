@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/theme/app_theme.dart';
 import '../core/di/injection.dart' as di;
 import '../features/app_mode/presentation/cubit/app_mode_cubit.dart';
+import '../features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'router/app_router.dart';
 
 class App extends StatelessWidget {
@@ -13,7 +14,9 @@ class App extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<AppModeCubit>()),
-        // Add AuthBloc here later
+        BlocProvider(
+          create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
+        ),
       ],
       child: const AppView(),
     );

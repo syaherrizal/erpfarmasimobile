@@ -6,7 +6,16 @@ import '../widgets/product_card.dart';
 import '../widgets/cart_view.dart';
 
 class PosHomeScreen extends StatefulWidget {
-  const PosHomeScreen({super.key});
+  final String organizationId;
+  final String branchId;
+  final String cashierId;
+
+  const PosHomeScreen({
+    super.key,
+    required this.organizationId,
+    required this.branchId,
+    required this.cashierId,
+  });
 
   @override
   State<PosHomeScreen> createState() => _PosHomeScreenState();
@@ -26,7 +35,11 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
         height: MediaQuery.of(sheetContext).size.height * 0.8,
         child: BlocProvider.value(
           value: context.read<CartCubit>(),
-          child: const CartView(),
+          child: CartView(
+            organizationId: widget.organizationId,
+            branchId: widget.branchId,
+            cashierId: widget.cashierId,
+          ),
         ),
       ),
     );
@@ -58,9 +71,9 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
                   ),
                   onPressed: () {
                     context.read<PosBloc>().add(
-                      const PosRefreshProductsRequested(
-                        'PLACEHOLDER',
-                        'PLACEHOLDER',
+                      PosRefreshProductsRequested(
+                        widget.organizationId,
+                        widget.branchId,
                       ),
                     );
                   },
@@ -90,7 +103,7 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
                 ),
               ),
               onChanged: (value) {
-                // TODO: Implement local search
+                context.read<PosBloc>().add(PosSearchRequested(value));
               },
             ),
           ),

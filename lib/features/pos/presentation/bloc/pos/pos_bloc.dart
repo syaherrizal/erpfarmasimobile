@@ -33,6 +33,13 @@ class PosTransactionSaved extends PosEvent {
   List<Object> get props => [transaction];
 }
 
+class PosSearchRequested extends PosEvent {
+  final String query;
+  const PosSearchRequested(this.query);
+  @override
+  List<Object> get props => [query];
+}
+
 // States
 abstract class PosState extends Equatable {
   const PosState();
@@ -79,6 +86,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosRefreshProductsRequested>(_onRefreshProductsRequested);
     on<PosSyncTransactionsRequested>(_onSyncTransactionsRequested);
     on<PosTransactionSaved>(_onTransactionSaved);
+    on<PosSearchRequested>(_onSearchRequested);
   }
 
   Future<void> _onInitialDataRequested(
@@ -143,5 +151,18 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     Emitter<PosState> emit,
   ) async {
     await _transactionRepository.syncPendingTransactions();
+  }
+
+  Future<void> _onSearchRequested(
+    PosSearchRequested event,
+    Emitter<PosState> emit,
+  ) async {
+    if (state is PosLoaded) {
+      final result = await _productRepository.searchProducts(event.query);
+      result.fold(
+        (failure) => emit(PosError(failure.message)),
+        (products) => emit((state as PosLoaded).copyWith(products: products)),
+      );
+    }
   }
 }

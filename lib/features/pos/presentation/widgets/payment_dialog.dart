@@ -5,11 +5,17 @@ import '../../data/models/hive/transaction_model.dart';
 class PaymentDialog extends StatefulWidget {
   final double totalAmount;
   final List<TransactionItemModel> items;
+  final String organizationId;
+  final String branchId;
+  final String cashierId;
 
   const PaymentDialog({
     super.key,
     required this.totalAmount,
     required this.items,
+    required this.organizationId,
+    required this.branchId,
+    required this.cashierId,
   });
 
   @override
@@ -108,6 +114,10 @@ class _PaymentDialogState extends State<PaymentDialog> {
                     createdAtEpoch: DateTime.now().millisecondsSinceEpoch,
                     totalAmount: widget.totalAmount,
                     items: widget.items,
+                    organizationId: widget.organizationId,
+                    branchId: widget.branchId,
+                    cashierId: widget.cashierId,
+                    paymentMethod: _paymentMethod,
                   );
                   Navigator.pop(context, transaction);
                 }
