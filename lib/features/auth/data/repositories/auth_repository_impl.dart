@@ -10,6 +10,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<AuthState> get onAuthStateChange => _supabase.auth.onAuthStateChange;
 
   @override
+  User? get currentUser => _supabase.auth.currentUser;
+
+  @override
   Future<AuthResponse> signInWithEmail(String email, String password) async {
     return await _supabase.auth.signInWithPassword(
       email: email,

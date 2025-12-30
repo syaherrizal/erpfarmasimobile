@@ -7,6 +7,9 @@ import '../cubit/sync/product_sync_cubit.dart';
 import '../widgets/product_list_row.dart';
 import '../widgets/cart_view.dart';
 import '../../../../core/widgets/responsive_layout.dart';
+import '../../../../features/auth/presentation/bloc/organization/organization_context_cubit.dart';
+import '../../../../features/auth/presentation/bloc/organization/organization_context_state.dart';
+import '../../../../features/app_mode/presentation/cubit/branch_context_cubit.dart';
 
 class PosHomeScreen extends StatefulWidget {
   final String organizationId;
@@ -163,11 +166,45 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
       color: Theme.of(context).colorScheme.surface,
       child: Row(
         children: [
-          const Text(
-            'Produk Populer',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'FarmaDigi POS',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 2),
+                BlocBuilder<OrganizationContextCubit, OrganizationContextState>(
+                  builder: (context, orgState) {
+                    return BlocBuilder<BranchContextCubit, BranchContextState>(
+                      builder: (context, branchState) {
+                        String orgName = '';
+                        String branchName = '';
+
+                        if (orgState is OrganizationContextLoaded) {
+                          orgName = orgState.organizationName;
+                        }
+                        if (branchState is BranchContextLoaded) {
+                          branchName = branchState.selectedBranchName;
+                        }
+
+                        return Text(
+                          '$orgName - $branchName',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: const Color(0xFF0F766E),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
           BlocBuilder<ProductSyncCubit, ProductSyncState>(
             builder: (context, state) {
               return IconButton(

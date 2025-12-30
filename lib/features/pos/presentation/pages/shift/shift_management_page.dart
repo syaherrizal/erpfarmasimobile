@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_cubit.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_state.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/bloc/shift/shift_bloc.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/widgets/shift/close_shift_dialog.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/widgets/shift/open_shift_dialog.dart';
@@ -17,7 +19,34 @@ class ShiftManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manajemen Shift'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Manajemen Shift'),
+            BlocBuilder<OrganizationContextCubit, OrganizationContextState>(
+              builder: (context, orgState) {
+                return BlocBuilder<BranchContextCubit, BranchContextState>(
+                  builder: (context, branchState) {
+                    String orgName = '';
+                    String branchName = '';
+
+                    if (orgState is OrganizationContextLoaded) {
+                      orgName = orgState.organizationName;
+                    }
+                    if (branchState is BranchContextLoaded) {
+                      branchName = branchState.selectedBranchName;
+                    }
+
+                    return Text(
+                      '$orgName - $branchName',
+                      style: const TextStyle(fontSize: 12),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),

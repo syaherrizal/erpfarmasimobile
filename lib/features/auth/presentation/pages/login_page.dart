@@ -114,7 +114,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   Text(
-                    'Sistem Informasi Farmasi Terpadu',
+                    'Platform Manajemen Operasional Apotek & Klinik',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
@@ -124,14 +124,14 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 48),
                   // Form Section
-                  _buildLabel('Email Bisnis'),
+                  _buildLabel('ID Pengguna / Email'),
                   _buildTextField(
                     controller: _emailController,
-                    hintText: 'nama@apotek.id',
-                    prefixIcon: Icons.alternate_email_rounded,
+                    hintText: 'apoteker@klinik.id',
+                    prefixIcon: Icons.badge_outlined,
                   ),
                   const SizedBox(height: 20),
-                  _buildLabel('Password'),
+                  _buildLabel('Kata Sandi'),
                   _buildTextField(
                     controller: _passwordController,
                     hintText: '••••••••',
@@ -158,7 +158,7 @@ class _LoginViewState extends State<LoginView> {
                     child: TextButton(
                       onPressed: () {},
                       child: Text(
-                        'Lupa Password?',
+                        'Bantuan Akses?',
                         style: GoogleFonts.plusJakartaSans(
                           color: const Color(0xFF0D9488),
                           fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class _LoginViewState extends State<LoginView> {
                                     ),
                                   )
                                 : Text(
-                                    'Masuk ke Sistem',
+                                    'Masuk ke Dashboard',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -215,7 +215,7 @@ class _LoginViewState extends State<LoginView> {
                                   horizontal: 16,
                                 ),
                                 child: Text(
-                                  'Atau masuk dengan',
+                                  'Akses Alternatif',
                                   style: GoogleFonts.plusJakartaSans(
                                     color: Theme.of(
                                       context,
@@ -236,7 +236,7 @@ class _LoginViewState extends State<LoginView> {
                                   ),
                             icon: const Icon(Icons.g_mobiledata, size: 28),
                             label: Text(
-                              'Google Account',
+                              'Masuk dengan Google',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

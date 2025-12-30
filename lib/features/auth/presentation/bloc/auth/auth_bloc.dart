@@ -65,19 +65,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
-    // Check current session
-    // This part is tricky with Supabase 2.x which handles auth state via stream mostly.
-    // For simplicity, we assume initial check logic here or use a listener in App.
-    // But let's check current session.
-    // Actually, best practice is to listen to stream. For this simplified Bloc, we will check current session user.
-    // (In real app, we might subscribe to stream in main.dart or here)
-
-    // For now, let's start with Unauthenticated to force login or use session restoration if available.
-    // But since we are building, let's assume we want to restore session.
-    // GetIt probably has the client.
-
-    // Let's rely on Events from UI for now or impl initialization.
-    emit(AuthUnauthenticated());
+    final user = _authRepository.currentUser;
+    if (user != null) {
+      // Session restored!
+      // In a real app we might verify validity or refresh logic, but Supabase handles this implicitly.
+      final profile = await _authRepository.getUserProfile(user.id);
+      emit(AuthAuthenticated(user, profile));
+    } else {
+      emit(AuthUnauthenticated());
+    }
   }
 
   Future<void> _onAuthLoginRequested(
