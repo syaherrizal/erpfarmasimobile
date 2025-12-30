@@ -61,6 +61,24 @@ dev_dependencies:
   mocktail: ^1.0.4
   build_runner: ^2.4.13
   hive_generator: ^2.0.1
+  flutter_native_splash: ^2.4.4
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo/android-chrome-512x512.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo/android-chrome-512x512.png
+  android_12:
+    image: assets/images/logo/android-chrome-512x512.png
+    color: "#FFFFFF"
+  
+  android: true
+  ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
