@@ -58,4 +58,75 @@ class OwnerRepositoryImpl implements OwnerRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getOrganization(
+    String organizationId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', organizationId)
+          .single();
+      return Right(response);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateOrganization(
+    String organizationId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _supabase
+          .from('organizations')
+          .update(data)
+          .eq('id', organizationId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getBranches(
+    String organizationId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('branches')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .order('name');
+      return Right(List<Map<String, dynamic>>.from(response));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> addBranch(Map<String, dynamic> data) async {
+    try {
+      await _supabase.from('branches').insert(data);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateBranch(
+    String branchId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _supabase.from('branches').update(data).eq('id', branchId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

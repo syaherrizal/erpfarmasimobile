@@ -7,6 +7,9 @@ import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/or
 import 'package:erpfarmasimobile/core/di/injection.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/pages/owner_dashboard_screen.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/pages/owner_reports_page.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/pages/owner_approval_page.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/pages/owner_settings_page.dart';
 
 class OwnerRootPage extends StatefulWidget {
   const OwnerRootPage({super.key});
@@ -50,10 +53,11 @@ class _OwnerRootPageState extends State<OwnerRootPage> {
             ),
             body: IndexedStack(
               index: _selectedIndex,
-              children: const [
-                OwnerDashboardScreen(),
-                Center(child: Text('Riwayat Transaksi (Coming Soon)')),
-                Center(child: Text('Setelan Owner (Coming Soon)')),
+              children: [
+                const OwnerDashboardScreen(),
+                const OwnerReportsPage(),
+                const OwnerApprovalPage(),
+                const OwnerSettingsPage(),
               ],
             ),
             bottomNavigationBar: BottomNavigationBar(
@@ -64,17 +68,28 @@ class _OwnerRootPageState extends State<OwnerRootPage> {
                 });
               },
               selectedItemColor: const Color(0xFF0F766E),
+              unselectedItemColor: Colors.grey,
+              type: BottomNavigationBarType.fixed,
+              showUnselectedLabels: true,
               items: const [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard),
+                  icon: Icon(Icons.dashboard_outlined),
+                  activeIcon: Icon(Icons.dashboard),
                   label: 'Dashboard',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
-                  label: 'Riwayat',
+                  icon: Icon(Icons.bar_chart_outlined),
+                  activeIcon: Icon(Icons.bar_chart),
+                  label: 'Laporan',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.settings),
+                  icon: Icon(Icons.approval_outlined),
+                  activeIcon: Icon(Icons.approval),
+                  label: 'Approval',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings_outlined),
+                  activeIcon: Icon(Icons.settings),
                   label: 'Setelan',
                 ),
               ],

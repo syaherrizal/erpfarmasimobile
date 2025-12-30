@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/pos/pos_bloc.dart';
 import '../cubit/cart/cart_cubit.dart';
 import '../cubit/sync/product_sync_cubit.dart';
+import '../bloc/shift/shift_bloc.dart';
 import '../widgets/product_list_row.dart';
 import '../widgets/cart_view.dart';
 import '../../../../core/widgets/responsive_layout.dart';
@@ -77,6 +78,7 @@ class _PosHomeScreenState extends State<PosHomeScreen> {
           providers: [
             BlocProvider.value(value: context.read<CartCubit>()),
             BlocProvider.value(value: context.read<PosBloc>()),
+            BlocProvider.value(value: context.read<ShiftBloc>()),
           ],
           child: CartView(
             organizationId: widget.organizationId,

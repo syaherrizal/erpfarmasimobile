@@ -29,6 +29,8 @@ import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sy
 import 'package:erpfarmasimobile/features/owner/data/repositories/owner_repository_impl.dart';
 import 'package:erpfarmasimobile/features/owner/domain/repositories/owner_repository.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/bloc/organization/owner_organization_cubit.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/bloc/branch/owner_branch_cubit.dart';
 import 'package:erpfarmasimobile/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:erpfarmasimobile/features/profile/domain/repositories/profile_repository.dart';
 import 'package:erpfarmasimobile/features/profile/presentation/bloc/profile_bloc.dart';
@@ -132,6 +134,8 @@ Future<void> init() async {
   //! Features - Owner
   sl.registerLazySingleton<OwnerRepository>(() => OwnerRepositoryImpl(sl()));
   sl.registerFactory(() => OwnerBloc(sl()));
+  sl.registerFactory(() => OwnerOrganizationCubit(sl()));
+  sl.registerFactory(() => OwnerBranchCubit(sl()));
 
   //! Features - AppMode
   sl.registerFactory(() => AppModeCubit());
