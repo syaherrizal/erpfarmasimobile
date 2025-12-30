@@ -7,6 +7,9 @@ import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/widgets/responsive_layout.dart';
 import '../../../../core/utils/user_agent_utils.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
+import '../../../../features/app_mode/presentation/cubit/app_mode_cubit.dart';
+import '../../../../features/app_mode/app_mode.dart';
+import '../bloc/shift/shift_bloc.dart';
 
 class PosProfilePage extends StatefulWidget {
   const PosProfilePage({super.key});
@@ -431,19 +434,69 @@ class _PosProfilePageState extends State<PosProfilePage> {
           context,
           title: 'Tampilan Aplikasi',
           subtitle: 'Sesuaikan tema aplikasi (Light / Dark)',
-          child: SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            secondary: Icon(
-              themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              themeMode == ThemeMode.dark ? 'Mode Gelap' : 'Mode Terang',
-            ),
-            value: themeMode == ThemeMode.dark,
-            onChanged: (isDark) {
-              context.read<ThemeCubit>().toggleTheme(isDark);
-            },
+          child: Column(
+            children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Icon(
+                  themeMode == ThemeMode.dark
+                      ? Icons.dark_mode
+                      : Icons.light_mode,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  themeMode == ThemeMode.dark ? 'Mode Gelap' : 'Mode Terang',
+                ),
+                value: themeMode == ThemeMode.dark,
+                onChanged: (isDark) {
+                  context.read<ThemeCubit>().toggleTheme(isDark);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.swap_horizontal_circle,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text('Ganti Mode Aplikasi'),
+                subtitle: const Text('Beralih ke Command Center / Owner Mode'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final shiftState = context.read<ShiftBloc>().state;
+                  // Determine if shift is open.
+                  // Note: ShiftBloc state might be ShiftOpened, ShiftClosed, etc.
+                  // We need to be careful. If state is ShiftInitial or Loading, we might not know yet.
+                  // But usually in POS root, ShiftBloc is initialized.
+
+                  if (shiftState is ShiftOpened) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Akses Ditolak'),
+                        content: const Text(
+                          'Anda tidak dapat mengganti mode aplikasi saat Shift Kasir masih berstatus OPEN.\n\nHarap tutup shift terlebih dahulu melalui menu Shift untuk melanjutkan.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Mengerti'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    // Proceed to switch mode
+                    context.read<AppModeCubit>().setMode(AppMode.owner);
+                    // Navigation should be handled by AppMode wrapper/listener in root,
+                    // but usually we might need to pop all routes or go to root.
+                    // Assuming AppRoot handles this based on state change.
+                    // For safety, we can use context.go('/') if root handles redirection.
+                    context.go('/');
+                  }
+                },
+              ),
+            ],
           ),
         );
       },

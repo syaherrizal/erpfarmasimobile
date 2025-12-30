@@ -11,8 +11,9 @@ import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_con
 import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sync_cubit.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/bloc/shift/shift_bloc.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/pages/shift/shift_management_page.dart';
-import 'package:erpfarmasimobile/features/pos/presentation/pages/shift/shift_history_page.dart';
-import 'package:erpfarmasimobile/features/pos/presentation/cubit/shift_history/shift_history_cubit.dart';
+
+import 'package:erpfarmasimobile/features/pos/presentation/pages/history/transaction_history_page.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/transaction_history/transaction_history_cubit.dart';
 
 class PosRootPage extends StatefulWidget {
   const PosRootPage({super.key});
@@ -75,8 +76,8 @@ class _PosRootPageState extends State<PosRootPage> {
                     : _buildShiftRequiredView(context),
                 const ShiftManagementPage(),
                 BlocProvider(
-                  create: (context) => sl<ShiftHistoryCubit>(),
-                  child: const ShiftHistoryPage(),
+                  create: (context) => sl<TransactionHistoryCubit>(),
+                  child: const TransactionHistoryPage(),
                 ),
                 const PosProfilePage(),
               ];

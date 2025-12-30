@@ -4,6 +4,7 @@ import 'app/app.dart';
 import 'core/di/injection.dart' as di;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ void main() async {
   );
 
   await di.init();
+  await initializeDateFormatting('id_ID', null);
 
   runApp(const App());
 }

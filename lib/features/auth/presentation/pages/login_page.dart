@@ -234,7 +234,10 @@ class _LoginViewState extends State<LoginView> {
                                 : () => context.read<AuthBloc>().add(
                                     AuthGoogleLoginRequested(),
                                   ),
-                            icon: const Icon(Icons.g_mobiledata, size: 28),
+                            icon: Image.asset(
+                              'assets/images/logo/google_logo.png',
+                              height: 24,
+                            ),
                             label: Text(
                               'Masuk dengan Google',
                               style: GoogleFonts.plusJakartaSans(

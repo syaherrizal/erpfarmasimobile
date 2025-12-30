@@ -36,6 +36,7 @@ import 'package:erpfarmasimobile/features/pos/data/models/hive/shift_model.dart'
 import 'package:erpfarmasimobile/features/pos/data/repositories/shift_repository_impl.dart';
 import 'package:erpfarmasimobile/features/pos/domain/repositories/shift_repository.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/cubit/shift_history/shift_history_cubit.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/transaction_history/transaction_history_cubit.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/bloc/shift/shift_bloc.dart';
 import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
@@ -122,6 +123,11 @@ Future<void> init() async {
   );
   sl.registerFactory(() => ShiftBloc(sl()));
   sl.registerFactory(() => ShiftHistoryCubit(sl()));
+  sl.registerFactory(
+    () => TransactionHistoryCubit(
+      Hive.box<TransactionModel>(AppConstants.boxTransactionQueue),
+    ),
+  );
 
   //! Features - Owner
   sl.registerLazySingleton<OwnerRepository>(() => OwnerRepositoryImpl(sl()));
