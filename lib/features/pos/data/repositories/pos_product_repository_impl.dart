@@ -37,7 +37,9 @@ class PosProductRepositoryImpl implements PosProductRepository {
           name,
           sku,
           base_unit,
-          barcode
+          barcode,
+          category:product_categories (name),
+          classification:product_classifications (name)
         )
       ''')
           .eq('organization_id', organizationId)
@@ -61,6 +63,8 @@ class PosProductRepositoryImpl implements PosProductRepository {
             stock: (item['stock_on_hand'] as num).toInt(),
             unit: productData['base_unit'],
             barcode: productData['barcode'],
+            categoryName: productData['category']?['name'],
+            classificationName: productData['classification']?['name'],
           );
           newProducts[productModel.id] = productModel;
         }

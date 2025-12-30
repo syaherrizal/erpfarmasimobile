@@ -17,7 +17,7 @@ yang:
 - Konsisten
 - Nyaman dipakai lama
 - Tampak “mahal” dan terpercaya
-- Darkmode Support
+- Darkmode Support disemua pa
 
 Desain HARUS terlihat sama baiknya di:
 - Phone (Android / iOS)

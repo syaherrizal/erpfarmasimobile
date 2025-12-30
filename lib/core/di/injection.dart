@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:erpfarmasimobile/features/auth/data/repositories/auth_repository_impl.dart';
@@ -28,11 +29,14 @@ import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sy
 import 'package:erpfarmasimobile/features/owner/data/repositories/owner_repository_impl.dart';
 import 'package:erpfarmasimobile/features/owner/domain/repositories/owner_repository.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
+import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
   //! External
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
   // Hive
   await Hive.initFlutter();
 
@@ -63,7 +67,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => Supabase.instance.client);
 
   //! Core
-  // NetworkInfo, etc.
+  sl.registerLazySingleton(() => ThemeCubit(sl()));
 
   //! Features - Auth
   // Bloc

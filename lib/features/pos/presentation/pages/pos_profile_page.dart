@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/bloc/auth/auth_bloc.dart';
+import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class PosProfilePage extends StatelessWidget {
   const PosProfilePage({super.key});
@@ -29,10 +31,10 @@ class PosProfilePage extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 50,
-                backgroundColor: Color(0xFF0F766E),
-                child: Icon(Icons.person, size: 50, color: Colors.white),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: const Icon(Icons.person, size: 50, color: Colors.white),
               ),
               const SizedBox(height: 16),
               Text(
@@ -50,14 +52,20 @@ class PosProfilePage extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.teal.shade50,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.teal.shade100),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Text(
                   role,
                   style: TextStyle(
-                    color: Colors.teal.shade800,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -65,6 +73,23 @@ class PosProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               const Divider(),
+              BlocBuilder<ThemeCubit, ThemeMode>(
+                builder: (context, themeMode) {
+                  return SwitchListTile(
+                    secondary: Icon(
+                      themeMode == ThemeMode.dark
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      color: AppTheme.primaryColor,
+                    ),
+                    title: const Text('Mode Gelap (Dark Mode)'),
+                    value: themeMode == ThemeMode.dark,
+                    onChanged: (isDark) {
+                      context.read<ThemeCubit>().toggleTheme(isDark);
+                    },
+                  );
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
                 title: const Text('Pengaturan Aplikasi'),

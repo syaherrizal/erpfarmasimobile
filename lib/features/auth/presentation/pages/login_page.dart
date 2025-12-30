@@ -50,7 +50,7 @@ class _LoginViewState extends State<LoginView> {
     final isTablet = size.width > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -83,7 +83,7 @@ class _LoginViewState extends State<LoginView> {
                       height: 100,
                       width: 100,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
@@ -110,7 +110,6 @@ class _LoginViewState extends State<LoginView> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -119,7 +118,7 @@ class _LoginViewState extends State<LoginView> {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
-                      color: const Color(0xFF64748B),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -203,6 +202,7 @@ class _LoginViewState extends State<LoginView> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
                                   ),
                           ),
@@ -217,7 +217,9 @@ class _LoginViewState extends State<LoginView> {
                                 child: Text(
                                   'Atau masuk dengan',
                                   style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFF94A3B8),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -238,12 +240,14 @@ class _LoginViewState extends State<LoginView> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF334155),
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              side: BorderSide(
+                                color: Theme.of(context).dividerColor,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -270,7 +274,7 @@ class _LoginViewState extends State<LoginView> {
         style: GoogleFonts.plusJakartaSans(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: const Color(0xFF334155),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -285,9 +289,9 @@ class _LoginViewState extends State<LoginView> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -302,10 +306,12 @@ class _LoginViewState extends State<LoginView> {
         style: GoogleFonts.plusJakartaSans(fontSize: 15),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           prefixIcon: Icon(
             prefixIcon,
-            color: const Color(0xFF64748B),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             size: 20,
           ),
           suffixIcon: suffixIcon,

@@ -25,6 +25,12 @@ class ProductModel extends HiveObject {
   @HiveField(6)
   final String? barcode;
 
+  @HiveField(7)
+  final String? categoryName;
+
+  @HiveField(8)
+  final String? classificationName;
+
   ProductModel({
     required this.id,
     required this.name,
@@ -33,5 +39,7 @@ class ProductModel extends HiveObject {
     required this.stock,
     this.unit,
     this.barcode,
+    this.categoryName,
+    this.classificationName,
   });
 }

@@ -8,6 +8,7 @@ import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/or
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/permission/permission_cubit.dart';
 import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
 import 'package:erpfarmasimobile/app/router/app_router.dart';
+import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -23,6 +24,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<OrganizationContextCubit>()),
         BlocProvider(create: (_) => di.sl<PermissionCubit>()),
         BlocProvider(create: (_) => di.sl<BranchContextCubit>()),
+        BlocProvider(create: (_) => di.sl<ThemeCubit>()),
       ],
       child: const AppView(),
     );
@@ -34,11 +36,17 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'FarmaDigi POS',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      routerConfig: AppRouter.router,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return MaterialApp.router(
+          title: 'FarmaDigi POS',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: AppRouter.router,
+        );
+      },
     );
   }
 }
