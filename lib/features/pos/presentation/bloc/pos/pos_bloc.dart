@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../data/models/hive/product_model.dart';
+import '../../../data/models/hive/transaction_model.dart';
 import '../../../domain/repositories/pos_product_repository.dart';
 import '../../../domain/repositories/pos_transaction_repository.dart';
 
@@ -24,6 +25,13 @@ class PosRefreshProductsRequested extends PosEvent {
 }
 
 class PosSyncTransactionsRequested extends PosEvent {}
+
+class PosTransactionSaved extends PosEvent {
+  final TransactionModel transaction;
+  const PosTransactionSaved(this.transaction);
+  @override
+  List<Object> get props => [transaction];
+}
 
 // States
 abstract class PosState extends Equatable {
@@ -70,6 +78,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosInitialDataRequested>(_onInitialDataRequested);
     on<PosRefreshProductsRequested>(_onRefreshProductsRequested);
     on<PosSyncTransactionsRequested>(_onSyncTransactionsRequested);
+    on<PosTransactionSaved>(_onTransactionSaved);
   }
 
   Future<void> _onInitialDataRequested(
@@ -118,6 +127,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         });
       },
     );
+  }
+
+  Future<void> _onTransactionSaved(
+    PosTransactionSaved event,
+    Emitter<PosState> emit,
+  ) async {
+    await _transactionRepository.saveTransaction(event.transaction);
+    // Automatically trigger sync check
+    add(PosSyncTransactionsRequested());
   }
 
   Future<void> _onSyncTransactionsRequested(

@@ -2,7 +2,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/repositories/pos_product_repository.dart';
 import '../models/hive/product_model.dart';
@@ -38,7 +37,7 @@ class PosProductRepositoryImpl implements PosProductRepository {
           .eq('branch_id', branchId);
 
       // Check if response is empty
-      if (response == null || (response as List).isEmpty) {
+      if ((response as List).isEmpty) {
         return const Right(null);
       }
 
