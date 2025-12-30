@@ -59,6 +59,9 @@ class TransactionModel extends HiveObject {
   @HiveField(8)
   final String paymentMethod;
 
+  @HiveField(9)
+  final String shiftId;
+
   TransactionModel({
     required this.id,
     required this.createdAtEpoch,
@@ -69,5 +72,6 @@ class TransactionModel extends HiveObject {
     required this.branchId,
     required this.cashierId,
     required this.paymentMethod,
+    required this.shiftId,
   });
 }

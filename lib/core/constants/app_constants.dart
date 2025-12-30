@@ -11,6 +11,7 @@ class AppConstants {
   static const String boxInventoryBatches = 'inventory_batches_box';
   static const String boxInventoryMovements = 'inventory_movements_box';
   static const String boxProductConversions = 'product_conversions_box';
+  static const String boxShifts = 'shifts_box';
 
   // Supabase Table Names (schema public)
   static const String tableProfiles = 'profiles';

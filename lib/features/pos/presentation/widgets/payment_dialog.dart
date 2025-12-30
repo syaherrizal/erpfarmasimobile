@@ -9,6 +9,7 @@ class PaymentDialog extends StatefulWidget {
   final String organizationId;
   final String branchId;
   final String cashierId;
+  final String shiftId;
 
   const PaymentDialog({
     super.key,
@@ -17,6 +18,7 @@ class PaymentDialog extends StatefulWidget {
     required this.organizationId,
     required this.branchId,
     required this.cashierId,
+    required this.shiftId,
   });
 
   @override
@@ -58,6 +60,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
         branchId: widget.branchId,
         cashierId: widget.cashierId,
         paymentMethod: _paymentMethod,
+        shiftId: widget.shiftId,
       );
       Navigator.pop(context, transaction);
     }

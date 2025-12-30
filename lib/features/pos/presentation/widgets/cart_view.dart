@@ -5,6 +5,7 @@ import '../cubit/cart/cart_cubit.dart';
 import '../widgets/payment_dialog.dart';
 import '../../data/models/hive/transaction_model.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../bloc/shift/shift_bloc.dart';
 
 class CartView extends StatelessWidget {
   final String organizationId;
@@ -372,6 +373,21 @@ class CartView extends StatelessWidget {
               onPressed: state.items.isEmpty
                   ? null
                   : () async {
+                      final shiftState = context.read<ShiftBloc>().state;
+                      String? shiftId;
+                      if (shiftState is ShiftOpened) {
+                        shiftId = shiftState.shift.id;
+                      }
+
+                      if (shiftId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Error: Shift belum dibuka'),
+                          ),
+                        );
+                        return;
+                      }
+
                       final transaction = await showDialog<TransactionModel>(
                         context: context,
                         builder: (dialogContext) => PaymentDialog(
@@ -390,6 +406,7 @@ class CartView extends StatelessWidget {
                           organizationId: organizationId,
                           branchId: branchId,
                           cashierId: cashierId,
+                          shiftId: shiftId!,
                         ),
                       );
 
@@ -398,6 +415,9 @@ class CartView extends StatelessWidget {
                           PosTransactionSaved(transaction),
                         );
                         context.read<CartCubit>().clearCart();
+                        // Also update shift stats
+                        context.read<ShiftBloc>().add(UpdateShiftStats());
+
                         if (!isTablet) {
                           Navigator.pop(context); // Close BottomSheet on mobile
                         }

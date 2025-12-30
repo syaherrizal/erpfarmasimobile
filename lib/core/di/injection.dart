@@ -32,6 +32,11 @@ import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bl
 import 'package:erpfarmasimobile/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:erpfarmasimobile/features/profile/domain/repositories/profile_repository.dart';
 import 'package:erpfarmasimobile/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/shift_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/repositories/shift_repository_impl.dart';
+import 'package:erpfarmasimobile/features/pos/domain/repositories/shift_repository.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/shift_history/shift_history_cubit.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/bloc/shift/shift_bloc.dart';
 import 'package:erpfarmasimobile/core/theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
@@ -51,6 +56,7 @@ Future<void> init() async {
   Hive.registerAdapter(InventoryBatchModelAdapter());
   Hive.registerAdapter(InventoryMovementModelAdapter());
   Hive.registerAdapter(ProductConversionModelAdapter());
+  Hive.registerAdapter(ShiftModelAdapter());
 
   // Open core boxes (more to be opened in features)
   await Hive.openBox(AppConstants.boxSettings);
@@ -58,6 +64,7 @@ Future<void> init() async {
   await Hive.openBox<ProductModel>(AppConstants.boxProducts);
   await Hive.openBox<CartItemModel>(AppConstants.boxCart);
   await Hive.openBox<TransactionModel>(AppConstants.boxTransactionQueue);
+  await Hive.openBox<ShiftModel>(AppConstants.boxShifts);
   await Hive.openBox<InventoryBatchModel>(AppConstants.boxInventoryBatches);
   await Hive.openBox<InventoryMovementModel>(
     AppConstants.boxInventoryMovements,
@@ -108,6 +115,13 @@ Future<void> init() async {
     () => CartCubit(Hive.box<CartItemModel>(AppConstants.boxCart)),
   );
   sl.registerFactory(() => ProductSyncCubit(sl()));
+
+  sl.registerLazySingleton<ShiftRepository>(
+    () =>
+        ShiftRepositoryImpl(Hive.box<ShiftModel>(AppConstants.boxShifts), sl()),
+  );
+  sl.registerFactory(() => ShiftBloc(sl()));
+  sl.registerFactory(() => ShiftHistoryCubit(sl()));
 
   //! Features - Owner
   sl.registerLazySingleton<OwnerRepository>(() => OwnerRepositoryImpl(sl()));
