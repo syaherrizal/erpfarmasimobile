@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/di/injection.dart';
-import '../bloc/owner/owner_bloc.dart';
-import 'owner_dashboard_screen.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_cubit.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_state.dart';
+import 'package:erpfarmasimobile/core/di/injection.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
+import 'package:erpfarmasimobile/features/owner/presentation/pages/owner_dashboard_screen.dart';
 
 class OwnerRootPage extends StatefulWidget {
   const OwnerRootPage({super.key});
@@ -21,8 +23,9 @@ class _OwnerRootPageState extends State<OwnerRootPage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         String orgId = 'PLACEHOLDER';
-        if (authState is AuthAuthenticated) {
-          orgId = authState.profile?['organization_id'] ?? 'PLACEHOLDER';
+        final orgState = context.read<OrganizationContextCubit>().state;
+        if (orgState is OrganizationContextLoaded) {
+          orgId = orgState.organizationId;
         }
 
         return BlocProvider(

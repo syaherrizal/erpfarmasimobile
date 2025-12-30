@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/injection.dart';
-import '../bloc/pos/pos_bloc.dart';
-import '../cubit/cart/cart_cubit.dart';
-import 'pos_home_screen.dart';
-import 'pos_profile_page.dart';
-import '../../../auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:erpfarmasimobile/core/di/injection.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/bloc/pos/pos_bloc.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/cart/cart_cubit.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/pages/pos_home_screen.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/pages/pos_profile_page.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
 
 class PosRootPage extends StatefulWidget {
   const PosRootPage({super.key});
@@ -25,9 +26,13 @@ class _PosRootPageState extends State<PosRootPage> {
         String branchId = 'PLACEHOLDER';
         String cashierId = 'PLACEHOLDER';
 
+        final branchState = context.read<BranchContextCubit>().state;
+        if (branchState is BranchContextLoaded) {
+          orgId = branchState.organizationId;
+          branchId = branchState.selectedBranchId;
+        }
+
         if (authState is AuthAuthenticated) {
-          orgId = authState.profile?['organization_id'] ?? 'PLACEHOLDER';
-          branchId = authState.profile?['assigned_branch_id'] ?? 'PLACEHOLDER';
           cashierId = authState.user.id;
         }
 

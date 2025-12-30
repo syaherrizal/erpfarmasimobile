@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/pages/pos_profile_page.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
 
 class ManagerRootPage extends StatefulWidget {
   const ManagerRootPage({super.key});
@@ -11,42 +14,66 @@ class ManagerRootPage extends StatefulWidget {
 class _ManagerRootPageState extends State<ManagerRootPage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const InventoryScreen(),
-    const StockOpnameScreen(),
-    const ApprovalScreen(),
-    const Center(child: Text('Riwayat Transaksi Cabang (Coming Soon)')),
-    const PosProfilePage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF0F766E),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Inventory',
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        // ignore: unused_local_variable
+        String orgId = 'PLACEHOLDER';
+        // ignore: unused_local_variable
+        String branchId = 'PLACEHOLDER';
+
+        final branchState = context.read<BranchContextCubit>().state;
+        if (branchState is BranchContextLoaded) {
+          orgId = branchState.organizationId;
+          branchId = branchState.selectedBranchId;
+        }
+
+        final List<Widget> screens = [
+          const InventoryScreen(),
+          const StockOpnameScreen(),
+          const ApprovalScreen(),
+          const Center(child: Text('Riwayat Transaksi Cabang (Coming Soon)')),
+          const PosProfilePage(),
+        ];
+
+        return Scaffold(
+          body: IndexedStack(index: _selectedIndex, children: screens),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: const Color(0xFF0F766E),
+            unselectedItemColor: Colors.grey,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.inventory_2),
+                label: 'Inventory',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.edit_note),
+                label: 'Opname',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fact_check),
+                label: 'Approval',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: 'Riwayat',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Opname'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fact_check),
-            label: 'Approval',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
-      ),
+        );
+      },
     );
   }
 }

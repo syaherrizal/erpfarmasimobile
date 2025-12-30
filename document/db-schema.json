@@ -1,0 +1,272 @@
+[
+    {
+        "ddl": "CREATE TABLE auth.audit_log_entries (\n  instance_id uuid,\n  payload json,\n  created_at timestamp with time zone,\n  ip_address character varying(64) DEFAULT ''::character varying NOT NULL,\n  id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.flow_state (\n  updated_at timestamp with time zone,\n  auth_code_issued_at timestamp with time zone,\n  authentication_method text NOT NULL,\n  id uuid NOT NULL,\n  user_id uuid,\n  auth_code text NOT NULL,\n  code_challenge text NOT NULL,\n  code_challenge_method auth.code_challenge_method NOT NULL,\n  provider_type text NOT NULL,\n  provider_access_token text,\n  provider_refresh_token text,\n  created_at timestamp with time zone\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.identities (\n  identity_data jsonb NOT NULL,\n  provider text NOT NULL,\n  last_sign_in_at timestamp with time zone,\n  created_at timestamp with time zone,\n  updated_at timestamp with time zone,\n  email text DEFAULT lower((identity_data ->> 'email'::text)),\n  provider_id text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  user_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.instances (\n  raw_base_config text,\n  uuid uuid,\n  id uuid NOT NULL,\n  updated_at timestamp with time zone,\n  created_at timestamp with time zone\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.mfa_amr_claims (\n  id uuid NOT NULL,\n  authentication_method text NOT NULL,\n  updated_at timestamp with time zone NOT NULL,\n  created_at timestamp with time zone NOT NULL,\n  session_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.mfa_challenges (\n  otp_code text,\n  web_authn_session_data jsonb,\n  ip_address inet NOT NULL,\n  verified_at timestamp with time zone,\n  created_at timestamp with time zone NOT NULL,\n  factor_id uuid NOT NULL,\n  id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.mfa_factors (\n  phone text,\n  id uuid NOT NULL,\n  last_challenged_at timestamp with time zone,\n  web_authn_credential jsonb,\n  web_authn_aaguid uuid,\n  user_id uuid NOT NULL,\n  friendly_name text,\n  factor_type auth.factor_type NOT NULL,\n  status auth.factor_status NOT NULL,\n  created_at timestamp with time zone NOT NULL,\n  updated_at timestamp with time zone NOT NULL,\n  secret text,\n  last_webauthn_challenge_data jsonb\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.oauth_authorizations (\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  id uuid NOT NULL,\n  authorization_id text NOT NULL,\n  client_id uuid NOT NULL,\n  nonce text,\n  user_id uuid,\n  redirect_uri text NOT NULL,\n  scope text NOT NULL,\n  state text,\n  resource text,\n  code_challenge text,\n  code_challenge_method auth.code_challenge_method,\n  authorization_code text,\n  approved_at timestamp with time zone,\n  status auth.oauth_authorization_status DEFAULT 'pending'::auth.oauth_authorization_status NOT NULL,\n  response_type auth.oauth_response_type DEFAULT 'code'::auth.oauth_response_type NOT NULL,\n  expires_at timestamp with time zone DEFAULT (now() + '00:03:00'::interval) NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.oauth_client_states (\n  created_at timestamp with time zone NOT NULL,\n  id uuid NOT NULL,\n  provider_type text NOT NULL,\n  code_verifier text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.oauth_clients (\n  id uuid NOT NULL,\n  client_type auth.oauth_client_type DEFAULT 'confidential'::auth.oauth_client_type NOT NULL,\n  client_secret_hash text,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  updated_at timestamp with time zone DEFAULT now() NOT NULL,\n  deleted_at timestamp with time zone,\n  logo_uri text,\n  client_uri text,\n  client_name text,\n  grant_types text NOT NULL,\n  redirect_uris text NOT NULL,\n  registration_type auth.oauth_registration_type NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.oauth_consents (\n  user_id uuid NOT NULL,\n  granted_at timestamp with time zone DEFAULT now() NOT NULL,\n  revoked_at timestamp with time zone,\n  client_id uuid NOT NULL,\n  scopes text NOT NULL,\n  id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.one_time_tokens (\n  token_type auth.one_time_token_type NOT NULL,\n  relates_to text NOT NULL,\n  user_id uuid NOT NULL,\n  id uuid NOT NULL,\n  updated_at timestamp without time zone DEFAULT now() NOT NULL,\n  token_hash text NOT NULL,\n  created_at timestamp without time zone DEFAULT now() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.refresh_tokens (\n  id bigint DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass) NOT NULL,\n  revoked boolean,\n  created_at timestamp with time zone,\n  updated_at timestamp with time zone,\n  instance_id uuid,\n  token character varying(255),\n  user_id character varying(255),\n  parent character varying(255),\n  session_id uuid\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.saml_providers (\n  metadata_url text,\n  id uuid NOT NULL,\n  sso_provider_id uuid NOT NULL,\n  entity_id text NOT NULL,\n  metadata_xml text NOT NULL,\n  attribute_mapping jsonb,\n  created_at timestamp with time zone,\n  updated_at timestamp with time zone,\n  name_id_format text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.saml_relay_states (\n  updated_at timestamp with time zone,\n  sso_provider_id uuid NOT NULL,\n  id uuid NOT NULL,\n  created_at timestamp with time zone,\n  for_email text,\n  request_id text NOT NULL,\n  flow_state_id uuid,\n  redirect_to text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.schema_migrations (\n  version character varying(255) NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.sessions (\n  oauth_client_id uuid,\n  tag text,\n  ip inet,\n  user_agent text,\n  refreshed_at timestamp without time zone,\n  scopes text,\n  not_after timestamp with time zone,\n  factor_id uuid,\n  aal auth.aal_level,\n  id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  created_at timestamp with time zone,\n  refresh_token_hmac_key text,\n  refresh_token_counter bigint,\n  updated_at timestamp with time zone\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.sso_domains (\n  id uuid NOT NULL,\n  domain text NOT NULL,\n  created_at timestamp with time zone,\n  updated_at timestamp with time zone,\n  sso_provider_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.sso_providers (\n  id uuid NOT NULL,\n  resource_id text,\n  created_at timestamp with time zone,\n  updated_at timestamp with time zone,\n  disabled boolean\n);"
+    },
+    {
+        "ddl": "CREATE TABLE auth.users (\n  banned_until timestamp with time zone,\n  reauthentication_token character varying(255) DEFAULT ''::character varying,\n  reauthentication_sent_at timestamp with time zone,\n  confirmed_at timestamp with time zone DEFAULT LEAST(email_confirmed_at, phone_confirmed_at),\n  email_confirmed_at timestamp with time zone,\n  phone_change_sent_at timestamp with time zone,\n  phone_change_token character varying(255) DEFAULT ''::character varying,\n  phone_confirmed_at timestamp with time zone,\n  aud character varying(255),\n  id uuid NOT NULL,\n  instance_id uuid,\n  is_sso_user boolean DEFAULT false NOT NULL,\n  deleted_at timestamp with time zone,\n  is_anonymous boolean DEFAULT false NOT NULL,\n  email_change_token_new character varying(255),\n  updated_at timestamp with time zone,\n  created_at timestamp with time zone,\n  is_super_admin boolean,\n  raw_user_meta_data jsonb,\n  raw_app_meta_data jsonb,\n  last_sign_in_at timestamp with time zone,\n  email_change_sent_at timestamp with time zone,\n  email_change character varying(255),\n  recovery_sent_at timestamp with time zone,\n  recovery_token character varying(255),\n  confirmation_sent_at timestamp with time zone,\n  confirmation_token character varying(255),\n  invited_at timestamp with time zone,\n  encrypted_password character varying(255),\n  email character varying(255),\n  role character varying(255),\n  email_change_confirm_status smallint DEFAULT 0,\n  email_change_token_current character varying(255) DEFAULT ''::character varying,\n  phone_change text DEFAULT ''::character varying,\n  phone text DEFAULT NULL::character varying\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.activity_logs (\n  metadata jsonb,\n  description text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  organization_id uuid NOT NULL,\n  action_type text NOT NULL,\n  created_at timestamp with time zone DEFAULT now(),\n  user_id uuid,\n  module text NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.branches (\n  phone text,\n  organization_id uuid NOT NULL,\n  address text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  is_active boolean DEFAULT true,\n  type text DEFAULT 'apotek'::text NOT NULL,\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.bundle_items (\n  component_id uuid,\n  unit_name text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  quantity integer NOT NULL,\n  bundle_id uuid\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.cash_flows (\n  amount numeric(12,2) NOT NULL,\n  created_at timestamp with time zone DEFAULT now(),\n  created_by uuid,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  description text,\n  flow_type text NOT NULL,\n  shift_id uuid,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.cash_shifts (\n  status text DEFAULT 'open'::text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  actual_cash_end numeric(12,2),\n  end_time timestamp with time zone,\n  user_id uuid,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  start_cash numeric(12,2) DEFAULT 0,\n  start_time timestamp with time zone DEFAULT now()\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.customers (\n  name text NOT NULL,\n  credit_limit numeric(12,2) DEFAULT 0,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  address text,\n  email text,\n  phone text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.doctors (\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  organization_id uuid NOT NULL,\n  specialization text,\n  is_active boolean DEFAULT true,\n  sip_number text,\n  phone text,\n  updated_at timestamp with time zone DEFAULT now(),\n  name text NOT NULL,\n  created_at timestamp with time zone DEFAULT now()\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.document_templates (\n  created_at timestamp with time zone DEFAULT now(),\n  is_active boolean DEFAULT true,\n  config jsonb DEFAULT '{}'::jsonb NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  type document_type NOT NULL,\n  branch_id uuid,\n  organization_id uuid NOT NULL,\n  is_default boolean DEFAULT false,\n  content text DEFAULT ''::text NOT NULL,\n  name text DEFAULT 'Template'::text NOT NULL,\n  updated_at timestamp with time zone DEFAULT now()\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.expense_categories (\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  description text,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.expenses (\n  created_by uuid,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  status text DEFAULT 'paid'::text,\n  payment_method text DEFAULT 'cash'::text,\n  transaction_date timestamp with time zone DEFAULT now(),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  shift_id uuid,\n  description text,\n  amount numeric(12,2) NOT NULL,\n  category_id uuid,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_batches (\n  quantity_real integer DEFAULT 0 NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  expired_date date NOT NULL,\n  batch_number text NOT NULL,\n  product_id uuid NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  price_buy numeric(12,2) DEFAULT 0 NOT NULL,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_items (\n  is_active boolean DEFAULT true,\n  product_id uuid NOT NULL,\n  rack_id uuid,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  price_sell numeric(12,2) DEFAULT 0 NOT NULL,\n  min_stock integer DEFAULT 10,\n  base_price numeric(12,2) DEFAULT 0,\n  stock_on_hand integer DEFAULT 0,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  price_sell_3 numeric DEFAULT 0,\n  organization_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  price_sell_2 numeric DEFAULT 0,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_movements (\n  batch_id uuid,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_by uuid,\n  notes text,\n  reference_id uuid,\n  balance_after integer NOT NULL,\n  quantity_change integer NOT NULL,\n  movement_type text NOT NULL,\n  product_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_opname_items (\n  counted_by uuid,\n  counted_at timestamp with time zone,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  difference integer DEFAULT (actual_stock - system_stock),\n  opname_id uuid NOT NULL,\n  product_id uuid NOT NULL,\n  batch_id uuid,\n  system_stock integer NOT NULL,\n  actual_stock integer,\n  notes text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_opname_sessions (\n  created_by uuid,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  status text DEFAULT 'open'::text,\n  started_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  opname_mode text DEFAULT 'SYSTEM'::text,\n  opname_scope text DEFAULT 'ALL'::text,\n  organization_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  session_number text NOT NULL,\n  description text,\n  completed_at timestamp with time zone\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_transfer_items (\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  quantity_received integer DEFAULT 0,\n  product_id uuid NOT NULL,\n  transfer_id uuid NOT NULL,\n  quantity_shipped integer DEFAULT 0,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  quantity_requested integer NOT NULL,\n  unit_name text,\n  batch_id uuid\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_transfers (\n  notes text,\n  received_at timestamp with time zone,\n  shipped_at timestamp with time zone,\n  transfer_number text NOT NULL,\n  target_branch_id uuid NOT NULL,\n  source_branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  status text DEFAULT 'pending'::text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.inventory_unit_prices (\n  price_sell_3 numeric DEFAULT 0,\n  branch_id uuid NOT NULL,\n  inventory_item_id uuid NOT NULL,\n  conversion_id uuid NOT NULL,\n  custom_barcode text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  is_active boolean DEFAULT true,\n  price_sell numeric(12,2) DEFAULT 0 NOT NULL,\n  price_sell_2 numeric DEFAULT 0,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.login_history (\n  login_at timestamp with time zone DEFAULT now(),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  user_agent text,\n  ip inet,\n  session_id uuid NOT NULL,\n  user_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.organizations (\n  slug text NOT NULL,\n  email text,\n  phone text,\n  tax_rate numeric(5,2) DEFAULT 0,\n  name text NOT NULL,\n  owner_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  logo_url text,\n  address text,\n  website text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.permissions (\n  code text NOT NULL,\n  group_name text,\n  description text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.pos_devices (\n  is_active boolean DEFAULT true,\n  organization_id uuid,\n  branch_id uuid,\n  name text NOT NULL,\n  device_token text NOT NULL,\n  last_active_at timestamp with time zone,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT now()\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_categories (\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  slug text NOT NULL,\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_classifications (\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  name text NOT NULL,\n  description text,\n  color_code text,\n  organization_id uuid,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_conversions (\n  unit_name text NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  barcode text,\n  conversion_factor numeric(12,2) NOT NULL,\n  product_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_manufacturers (\n  name text NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  is_active boolean DEFAULT true NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  contact text,\n  updated_at timestamp with time zone,\n  license_number text,\n  country text,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_racks (\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  organization_id uuid NOT NULL,\n  branch_id uuid,\n  name text NOT NULL,\n  location_code text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.product_units (\n  barcode text,\n  conversion_factor integer NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  unit_name text NOT NULL,\n  product_id uuid NOT NULL,\n  price_sell numeric(12,2)\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.products (\n  organization_id uuid NOT NULL,\n  sku text NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  classification_id uuid,\n  name text NOT NULL,\n  kfa_code text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  is_active boolean DEFAULT true,\n  manufacturer_id uuid,\n  is_bundle boolean DEFAULT false,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  description text,\n  barcode text,\n  category_id uuid,\n  base_unit text DEFAULT 'pcs'::text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.profiles (\n  avatar_url text,\n  pin_hash text,\n  is_pos_access_allowed boolean DEFAULT false,\n  user_id uuid,\n  invitation_created_at timestamp with time zone,\n  status text,\n  email text,\n  full_name text,\n  organization_id uuid,\n  assigned_branch_id uuid,\n  role_id uuid,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  id uuid DEFAULT gen_random_uuid() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.promotions (\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  is_active boolean DEFAULT true,\n  min_purchase_amount numeric(12,2) DEFAULT 0,\n  created_by uuid,\n  end_date timestamp with time zone NOT NULL,\n  description text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  name text NOT NULL,\n  organization_id uuid NOT NULL,\n  start_date timestamp with time zone NOT NULL,\n  discount_value numeric(12,2) NOT NULL,\n  promo_type text NOT NULL,\n  code text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.purchase_items (\n  unit_name text,\n  purchase_id uuid,\n  quantity_ordered integer NOT NULL,\n  product_id uuid,\n  conversion_rate integer DEFAULT 1,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  price_buy_per_unit numeric(12,2) NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.purchase_payments (\n  amount_paid numeric(12,2) NOT NULL,\n  payment_number text NOT NULL,\n  purchase_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  payment_method text DEFAULT 'cash'::text,\n  payment_date timestamp with time zone DEFAULT now(),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_by uuid,\n  notes text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.purchase_return_items (\n  quantity numeric(12,2) NOT NULL,\n  return_id uuid NOT NULL,\n  product_id uuid NOT NULL,\n  unit_name text,\n  batch_number text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  unit_cost numeric(12,2) DEFAULT 0,\n  subtotal numeric(12,2) DEFAULT 0\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.purchase_returns (\n  return_date timestamp with time zone DEFAULT now(),\n  total_amount numeric(12,2) DEFAULT 0,\n  status text DEFAULT 'completed'::text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  reason text,\n  return_number text NOT NULL,\n  supplier_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.purchases (\n  payment_status text DEFAULT 'unpaid'::text,\n  po_number text NOT NULL,\n  grand_total numeric DEFAULT '0'::numeric,\n  branch_id uuid NOT NULL,\n  supplier_id uuid,\n  status text DEFAULT 'draft'::text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  total_amount numeric(12,2) DEFAULT 0,\n  organization_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  amount_paid numeric(12,2) DEFAULT 0,\n  due_date date\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.receiving_items (\n  unit_cost numeric(12,2) DEFAULT 0,\n  receiving_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  expired_date date,\n  batch_number text,\n  unit_name text,\n  quantity numeric(12,2) NOT NULL,\n  product_id uuid NOT NULL,\n  subtotal numeric(12,2) DEFAULT 0\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.receivings (\n  received_date timestamp with time zone DEFAULT now(),\n  purchase_id uuid,\n  branch_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  notes text,\n  invoice_number text,\n  receive_number text NOT NULL,\n  supplier_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  total_amount numeric(12,2) DEFAULT 0\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.role_permissions (\n  permission_id uuid NOT NULL,\n  role_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.roles (\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  organization_id uuid NOT NULL,\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  is_system_role boolean DEFAULT false\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.saas_invoices (\n  payment_method text,\n  description text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  currency text DEFAULT 'IDR'::text,\n  organization_id uuid NOT NULL,\n  subscription_id uuid NOT NULL,\n  invoice_number text NOT NULL,\n  amount numeric NOT NULL,\n  period_start timestamp with time zone,\n  period_end timestamp with time zone,\n  paid_at timestamp with time zone,\n  xendit_invoice_url text,\n  status text DEFAULT 'pending'::text NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  invoice_url text,\n  payment_channel text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.saas_payment_logs (\n  event_type text,\n  provider_name text NOT NULL,\n  external_id text,\n  payload jsonb NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  processing_status text DEFAULT 'pending'::text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now())\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.saas_plans (\n  price numeric(12,2) NOT NULL,\n  slug text NOT NULL,\n  \"interval\" text NOT NULL,\n  max_users integer DEFAULT 1,\n  is_active boolean DEFAULT true,\n  features jsonb DEFAULT '{}'::jsonb,\n  max_branches integer DEFAULT 1,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  name text NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.saas_subscriptions (\n  current_period_end timestamp with time zone,\n  plan_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  grace_period_end timestamp with time zone,\n  current_period_start timestamp with time zone,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  external_subscription_id text,\n  status text NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.sales_payments (\n  branch_id uuid NOT NULL,\n  notes text,\n  amount_received numeric(12,2) NOT NULL,\n  payment_number text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  transaction_id uuid NOT NULL,\n  payment_date timestamp with time zone DEFAULT now(),\n  payment_method text DEFAULT 'cash'::text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  received_by uuid,\n  organization_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.sales_return_items (\n  quantity integer NOT NULL,\n  condition text DEFAULT 'good'::text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  subtotal numeric(12,2) NOT NULL,\n  refund_price numeric(12,2) NOT NULL,\n  unit_name text,\n  return_id uuid NOT NULL,\n  product_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.sales_returns (\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  status text DEFAULT 'completed'::text,\n  return_number text NOT NULL,\n  branch_id uuid NOT NULL,\n  transaction_id uuid NOT NULL,\n  total_refund numeric(12,2) DEFAULT 0,\n  return_date timestamp with time zone DEFAULT now(),\n  organization_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  cashier_id uuid,\n  reason text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.services (\n  updated_at timestamp with time zone,\n  price numeric DEFAULT 0 NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  organization_id uuid NOT NULL,\n  description text,\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.suppliers (\n  contact_person text,\n  is_active boolean DEFAULT true,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  phone text,\n  address text,\n  code text,\n  name text NOT NULL,\n  organization_id uuid NOT NULL,\n  created_at timestamp with time zone,\n  email text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.todos (\n  description text,\n  branch_id uuid,\n  organization_id uuid NOT NULL,\n  status text DEFAULT 'pending'::text,\n  priority text DEFAULT 'medium'::text,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  due_date timestamp with time zone,\n  title text NOT NULL,\n  assigned_to uuid,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  created_by uuid\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.transaction_items (\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  unit_name text DEFAULT 'pcs'::text,\n  batch_id uuid,\n  cogs numeric(12,2) DEFAULT 0,\n  tuslah numeric DEFAULT 0,\n  is_racikan boolean DEFAULT false,\n  racikan_group_id uuid,\n  transaction_id uuid,\n  product_id uuid,\n  discount_applied numeric(12,2) DEFAULT 0,\n  note text,\n  quantity integer NOT NULL,\n  price_at_sale numeric(12,2) NOT NULL,\n  usage_instruction text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.transactions (\n  transaction_date timestamp with time zone DEFAULT now(),\n  organization_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  cashier_id uuid,\n  doctor_id uuid,\n  customer_id uuid,\n  total_amount numeric(12,2) NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  payment_method text DEFAULT 'cash'::text,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  shift_id uuid,\n  status text,\n  amount_paid bigint,\n  customer_name text,\n  grand_total bigint,\n  sync_status text,\n  sales_status text DEFAULT ''::text,\n  due_date date,\n  tax_total bigint,\n  transaction_number text NOT NULL,\n  doctor_name text,\n  discount_total bigint,\n  change_amount bigint,\n  prescription_date date,\n  prescription_number text,\n  is_prescription boolean,\n  cashier_name text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.uom_references (\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  code text NOT NULL,\n  organization_id uuid,\n  name text NOT NULL,\n  category text DEFAULT 'packaging'::text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.user_branch_memberships (\n  is_default boolean DEFAULT false,\n  is_active boolean DEFAULT true,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  user_id uuid NOT NULL,\n  organization_id uuid NOT NULL,\n  branch_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.user_report_favorites (\n  href text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  color text,\n  bg text,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  organization_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  report_key text NOT NULL,\n  title text NOT NULL,\n  description text,\n  icon_name text,\n  last_updated timestamp with time zone DEFAULT now() NOT NULL,\n  sort_order integer DEFAULT 0\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.user_roles (\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  is_system boolean DEFAULT false,\n  organization_id uuid NOT NULL,\n  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),\n  permissions jsonb DEFAULT '{}'::jsonb\n);"
+    },
+    {
+        "ddl": "CREATE TABLE public.whatsapp_logs (\n  target_phone text,\n  organization_id uuid NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  status text DEFAULT 'pending'::text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE realtime.schema_migrations (\n  version bigint NOT NULL,\n  inserted_at timestamp(0) without time zone\n);"
+    },
+    {
+        "ddl": "CREATE TABLE realtime.subscription (\n  filters realtime.user_defined_filter[] DEFAULT '{}'::realtime.user_defined_filter[] NOT NULL,\n  claims jsonb NOT NULL,\n  entity regclass NOT NULL,\n  claims_role regrole DEFAULT realtime.to_regrole((claims ->> 'role'::text)) NOT NULL,\n  id bigint NOT NULL,\n  created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,\n  subscription_id uuid NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.buckets (\n  owner uuid,\n  type storage.buckettype DEFAULT 'STANDARD'::storage.buckettype NOT NULL,\n  allowed_mime_types text[],\n  public boolean DEFAULT false,\n  avif_autodetection boolean DEFAULT false,\n  file_size_limit bigint,\n  updated_at timestamp with time zone DEFAULT now(),\n  created_at timestamp with time zone DEFAULT now(),\n  name text NOT NULL,\n  id text NOT NULL,\n  owner_id text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.buckets_analytics (\n  deleted_at timestamp with time zone,\n  updated_at timestamp with time zone DEFAULT now() NOT NULL,\n  format text DEFAULT 'ICEBERG'::text NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  name text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  type storage.buckettype DEFAULT 'ANALYTICS'::storage.buckettype NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.buckets_vectors (\n  updated_at timestamp with time zone DEFAULT now() NOT NULL,\n  id text NOT NULL,\n  type storage.buckettype DEFAULT 'VECTOR'::storage.buckettype NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.migrations (\n  hash character varying(40) NOT NULL,\n  executed_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,\n  id integer NOT NULL,\n  name character varying(100) NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.objects (\n  version text,\n  last_accessed_at timestamp with time zone DEFAULT now(),\n  updated_at timestamp with time zone DEFAULT now(),\n  metadata jsonb,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  user_metadata jsonb,\n  path_tokens text[] DEFAULT string_to_array(name, '/'::text),\n  created_at timestamp with time zone DEFAULT now(),\n  owner uuid,\n  name text,\n  bucket_id text,\n  level integer,\n  owner_id text\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.prefixes (\n  level integer DEFAULT storage.get_level(name) NOT NULL,\n  name text NOT NULL,\n  bucket_id text NOT NULL,\n  created_at timestamp with time zone DEFAULT now(),\n  updated_at timestamp with time zone DEFAULT now()\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.s3_multipart_uploads (\n  bucket_id text NOT NULL,\n  in_progress_size bigint DEFAULT 0 NOT NULL,\n  version text NOT NULL,\n  owner_id text,\n  user_metadata jsonb,\n  id text NOT NULL,\n  upload_signature text NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  key text NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.s3_multipart_uploads_parts (\n  etag text NOT NULL,\n  owner_id text,\n  version text NOT NULL,\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  size bigint DEFAULT 0 NOT NULL,\n  upload_id text NOT NULL,\n  part_number integer NOT NULL,\n  bucket_id text NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  key text NOT NULL\n);"
+    },
+    {
+        "ddl": "CREATE TABLE storage.vector_indexes (\n  id text DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT now() NOT NULL,\n  updated_at timestamp with time zone DEFAULT now() NOT NULL,\n  name text NOT NULL,\n  distance_metric text NOT NULL,\n  dimension integer NOT NULL,\n  data_type text NOT NULL,\n  bucket_id text NOT NULL,\n  metadata_configuration jsonb\n);"
+    },
+    {
+        "ddl": "CREATE TABLE supabase_migrations.schema_migrations (\n  version text NOT NULL,\n  name text,\n  idempotency_key text,\n  created_by text,\n  rollback text[],\n  statements text[]\n);"
+    },
+    {
+        "ddl": "CREATE TABLE vault.secrets (\n  nonce bytea DEFAULT vault._crypto_aead_det_noncegen(),\n  id uuid DEFAULT gen_random_uuid() NOT NULL,\n  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  description text DEFAULT ''::text NOT NULL,\n  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  name text,\n  secret text NOT NULL,\n  key_id uuid\n);"
+    }
+]

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:erpfarmasimobile/features/app_mode/app_mode.dart';
 import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/app_mode_cubit.dart';
+import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/permission/permission_cubit.dart';
+import 'package:erpfarmasimobile/features/auth/presentation/bloc/permission/permission_state.dart';
 
 class ModeSelectionPage extends StatelessWidget {
   const ModeSelectionPage({super.key});
@@ -27,8 +30,19 @@ class ModeSelectionPage extends StatelessWidget {
               );
             }
 
-            final role = state.profile?['role']?['name'] ?? 'cashier';
-            final name = state.profile?['full_name'] ?? 'User';
+            final profile = state.profile;
+            final roleName = (profile?['role']?['name'] as String? ?? 'Kasir')
+                .trim()
+                .toLowerCase();
+            final name = profile?['full_name'] ?? 'User';
+
+            // Enterprise check: Is the user the technical owner of the organization?
+            final isOrgOwner =
+                profile?['organization']?['owner_id'] == state.user.id;
+
+            // Final role status
+            final isOwner = roleName == 'owner' || isOrgOwner;
+            final role = isOwner ? 'owner' : roleName;
 
             return SafeArea(
               child: Padding(
@@ -76,7 +90,20 @@ class ModeSelectionPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 48),
                     Expanded(
-                      child: ListView(children: _buildModeCards(context, role)),
+                      child: BlocBuilder<PermissionCubit, PermissionState>(
+                        builder: (context, permState) {
+                          final permissions = permState is PermissionLoaded
+                              ? permState.permissions
+                              : <String>{};
+                          return ListView(
+                            children: _buildModeCards(
+                              context,
+                              role,
+                              permissions,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -111,27 +138,72 @@ class ModeSelectionPage extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildModeCards(BuildContext context, String role) {
+  void _onModeSelected(BuildContext context, AppMode mode) {
+    context.read<AppModeCubit>().setMode(mode);
+
+    if (mode == AppMode.owner) {
+      context.go('/owner');
+      return;
+    }
+
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final userId = authState.user.id;
+      final orgId = authState.profile?['organization_id'];
+
+      if (orgId != null) {
+        context.read<BranchContextCubit>().loadMemberships(userId, orgId);
+        // Permissions already loaded by InitialContextPage
+        context.go('/select-branch');
+      }
+    }
+  }
+
+  List<Widget> _buildModeCards(
+    BuildContext context,
+    String role,
+    Set<String> permissions,
+  ) {
     final List<Widget> cards = [];
+    final bool isOwner = role == 'owner';
 
-    // Always show POS
-    cards.add(
-      _ModeCard(
-        title: 'Mode Kasir (POS)',
-        description:
-            'Transaksi penjualan, manajemen antrian, dan laporan kasir harian.',
-        icon: Icons.shopping_cart_checkout_rounded,
-        color: const Color(0xFF14B8A6),
-        onTap: () {
-          context.read<AppModeCubit>().setMode(AppMode.pos);
-          context.go('/pos');
-        },
-      ),
-    );
+    // 1. Mode Kasir (POS)
+    // Criteria: Is Owner OR has menu.pos OR any pos permission
+    final bool hasPosAccess =
+        isOwner ||
+        permissions.contains('menu.pos') ||
+        permissions.any((p) => p.startsWith('pos.'));
 
-    // Show Manager if owner or manager
-    if (role == 'owner' || role == 'manager') {
-      cards.add(const SizedBox(height: 16));
+    if (hasPosAccess) {
+      cards.add(
+        _ModeCard(
+          title: 'Mode Kasir (POS)',
+          description:
+              'Transaksi penjualan, manajemen antrian, dan laporan kasir harian.',
+          icon: Icons.shopping_cart_checkout_rounded,
+          color: const Color(0xFF14B8A6),
+          onTap: () => _onModeSelected(context, AppMode.pos),
+        ),
+      );
+    }
+
+    // 2. Mode Manager Cabang
+    // Criteria: Is Owner OR has any manager-level menu
+    final bool hasManagerAccess =
+        isOwner ||
+        permissions.any(
+          (p) =>
+              p == 'menu.inventory' ||
+              p == 'menu.reporting' ||
+              p == 'menu.purchasing' ||
+              p == 'menu.finance' ||
+              p == 'menu.marketing' ||
+              p == 'menu.products' ||
+              p == 'menu.settings',
+        );
+
+    if (hasManagerAccess) {
+      if (cards.isNotEmpty) cards.add(const SizedBox(height: 16));
       cards.add(
         _ModeCard(
           title: 'Mode Manager Cabang',
@@ -139,17 +211,18 @@ class ModeSelectionPage extends StatelessWidget {
               'Approval stok, stock opname, dan manajemen operasional cabang.',
           icon: Icons.manage_accounts_rounded,
           color: const Color(0xFFF59E0B),
-          onTap: () {
-            context.read<AppModeCubit>().setMode(AppMode.manager);
-            context.go('/manager');
-          },
+          onTap: () => _onModeSelected(context, AppMode.manager),
         ),
       );
     }
 
-    // Show Owner if owner
-    if (role == 'owner') {
-      cards.add(const SizedBox(height: 16));
+    // 3. Mode Owner (Enterprise)
+    // Criteria: Is Owner OR has menu.dashboard
+    final bool hasOwnerAccess =
+        isOwner || permissions.contains('menu.dashboard');
+
+    if (hasOwnerAccess) {
+      if (cards.isNotEmpty) cards.add(const SizedBox(height: 16));
       cards.add(
         _ModeCard(
           title: 'Mode Owner (Enterprise)',
@@ -157,10 +230,7 @@ class ModeSelectionPage extends StatelessWidget {
               'Analisis performa seluruh cabang, laporan laba rugi, dan statistik bisnis.',
           icon: Icons.dashboard_customize_rounded,
           color: const Color(0xFF6366F1),
-          onTap: () {
-            context.read<AppModeCubit>().setMode(AppMode.owner);
-            context.go('/owner');
-          },
+          onTap: () => _onModeSelected(context, AppMode.owner),
         ),
       );
     }

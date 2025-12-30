@@ -43,9 +43,9 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final response = await _supabase
           .from('profiles')
-          .select('*, organization:organizations(*), role:user_roles(*)')
-          .eq('user_id', userId)
-          .single();
+          .select('*, organization:organizations(*), role:roles(*)')
+          .eq('id', userId)
+          .maybeSingle();
       return response;
     } catch (e) {
       return null;
