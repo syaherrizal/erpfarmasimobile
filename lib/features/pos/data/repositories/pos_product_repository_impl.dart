@@ -5,12 +5,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/repositories/pos_product_repository.dart';
 import '../models/hive/product_model.dart';
+import '../models/hive/inventory_batch_model.dart';
+import '../models/hive/product_conversion_model.dart';
 
 class PosProductRepositoryImpl implements PosProductRepository {
   final SupabaseClient _supabase;
   final Box<ProductModel> _productBox;
+  final Box<InventoryBatchModel> _batchBox;
+  final Box<ProductConversionModel> _conversionBox;
 
-  PosProductRepositoryImpl(this._supabase, this._productBox);
+  PosProductRepositoryImpl(
+    this._supabase,
+    this._productBox,
+    this._batchBox,
+    this._conversionBox,
+  );
 
   @override
   Future<Either<Failure, void>> syncProducts(
@@ -18,8 +27,6 @@ class PosProductRepositoryImpl implements PosProductRepository {
     String branchId,
   ) async {
     try {
-      // Fetch from Supabase
-      // Join inventory_items (stock & price) with products (name, sku, unit)
       final response = await _supabase
           .from('inventory_items')
           .select('''
@@ -36,7 +43,6 @@ class PosProductRepositoryImpl implements PosProductRepository {
           .eq('organization_id', organizationId)
           .eq('branch_id', branchId);
 
-      // Check if response is empty
       if ((response as List).isEmpty) {
         return const Right(null);
       }
@@ -60,7 +66,6 @@ class PosProductRepositoryImpl implements PosProductRepository {
         }
       }
 
-      // Update Hive (Full replace or merge? Full replace for safe sync)
       await _productBox.clear();
       await _productBox.putAll(newProducts);
 
@@ -96,6 +101,77 @@ class PosProductRepositoryImpl implements PosProductRepository {
       return Right(products);
     } catch (e) {
       return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> syncInventoryBatches(
+    String organizationId,
+    String branchId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('inventory_batches')
+          .select()
+          .eq('organization_id', organizationId)
+          .eq('branch_id', branchId)
+          .gt('quantity_real', 0);
+
+      final List<dynamic> data = response;
+      final Map<String, InventoryBatchModel> newBatches = {};
+
+      for (var item in data) {
+        final batch = InventoryBatchModel(
+          id: item['id'],
+          productId: item['product_id'],
+          batchNumber: item['batch_number'],
+          expiredDate: DateTime.parse(item['expired_date']),
+          quantityReal: (item['quantity_real'] as num).toInt(),
+          priceBuy: (item['price_buy'] as num).toDouble(),
+          organizationId: organizationId,
+          branchId: branchId,
+        );
+        newBatches[batch.id] = batch;
+      }
+
+      await _batchBox.clear();
+      await _batchBox.putAll(newBatches);
+
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> syncProductConversions(
+    String organizationId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('product_conversions')
+          .select()
+          .eq('organization_id', organizationId);
+
+      final List<dynamic> data = response;
+      final Map<String, ProductConversionModel> newConversions = {};
+
+      for (var item in data) {
+        final conversion = ProductConversionModel(
+          id: item['id'],
+          productId: item['product_id'],
+          unitName: item['unit_name'],
+          conversionFactor: (item['conversion_factor'] as num).toDouble(),
+        );
+        newConversions[conversion.id] = conversion;
+      }
+
+      await _conversionBox.clear();
+      await _conversionBox.putAll(newConversions);
+
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 }

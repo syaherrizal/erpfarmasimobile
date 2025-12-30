@@ -16,17 +16,21 @@ class TransactionItemModel extends HiveObject {
   @HiveField(3)
   final double price;
 
+  @HiveField(4)
+  final String? unitName;
+
   TransactionItemModel({
     required this.productId,
     required this.productName,
     required this.quantity,
     required this.price,
+    this.unitName,
   });
 
   double get total => price * quantity;
 }
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 3)
 class TransactionModel extends HiveObject {
   @HiveField(0)
   final String id;

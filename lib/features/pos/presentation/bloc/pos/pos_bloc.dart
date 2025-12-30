@@ -1,9 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../data/models/hive/product_model.dart';
-import '../../../data/models/hive/transaction_model.dart';
-import '../../../domain/repositories/pos_product_repository.dart';
-import '../../../domain/repositories/pos_transaction_repository.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/product_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/transaction_model.dart';
+import 'package:erpfarmasimobile/features/pos/domain/repositories/pos_product_repository.dart';
+import 'package:erpfarmasimobile/features/pos/domain/repositories/pos_transaction_repository.dart';
+import 'package:erpfarmasimobile/features/pos/domain/repositories/inventory_repository.dart';
 
 // Events
 abstract class PosEvent extends Equatable {
@@ -13,15 +14,7 @@ abstract class PosEvent extends Equatable {
 }
 
 class PosInitialDataRequested extends PosEvent {
-  final String organizationId;
-  final String branchId;
-  const PosInitialDataRequested(this.organizationId, this.branchId);
-}
-
-class PosRefreshProductsRequested extends PosEvent {
-  final String organizationId;
-  final String branchId;
-  const PosRefreshProductsRequested(this.organizationId, this.branchId);
+  const PosInitialDataRequested();
 }
 
 class PosSyncTransactionsRequested extends PosEvent {}
@@ -53,19 +46,11 @@ class PosLoading extends PosState {}
 
 class PosLoaded extends PosState {
   final List<ProductModel> products;
-  final String syncStatus; // 'synced', 'syncing', 'error'
 
-  const PosLoaded({required this.products, this.syncStatus = 'synced'});
-
-  PosLoaded copyWith({List<ProductModel>? products, String? syncStatus}) {
-    return PosLoaded(
-      products: products ?? this.products,
-      syncStatus: syncStatus ?? this.syncStatus,
-    );
-  }
+  const PosLoaded({required this.products});
 
   @override
-  List<Object?> get props => [products, syncStatus];
+  List<Object?> get props => [products];
 }
 
 class PosError extends PosState {
@@ -79,27 +64,27 @@ class PosError extends PosState {
 class PosBloc extends Bloc<PosEvent, PosState> {
   final PosProductRepository _productRepository;
   final PosTransactionRepository _transactionRepository;
+  final InventoryRepository _inventoryRepository;
 
-  PosBloc(this._productRepository, this._transactionRepository)
-    : super(PosInitial()) {
+  PosBloc(
+    this._productRepository,
+    this._transactionRepository,
+    this._inventoryRepository,
+  ) : super(PosInitial()) {
     on<PosInitialDataRequested>(_onInitialDataRequested);
-    on<PosRefreshProductsRequested>(_onRefreshProductsRequested);
     on<PosSyncTransactionsRequested>(_onSyncTransactionsRequested);
     on<PosTransactionSaved>(_onTransactionSaved);
     on<PosSearchRequested>(_onSearchRequested);
   }
 
+  /// Loads products directly from Local Hive storage.
+  /// Remote sync is handled independently by ProductSyncCubit.
   Future<void> _onInitialDataRequested(
     PosInitialDataRequested event,
     Emitter<PosState> emit,
   ) async {
     emit(PosLoading());
-    // Load local products first
     final localResult = await _productRepository.getAllProducts();
-
-    // Trigger background sync
-    add(PosRefreshProductsRequested(event.organizationId, event.branchId));
-    add(PosSyncTransactionsRequested());
 
     localResult.fold(
       (failure) => emit(PosError(failure.message)),
@@ -107,43 +92,41 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     );
   }
 
-  Future<void> _onRefreshProductsRequested(
-    PosRefreshProductsRequested event,
-    Emitter<PosState> emit,
-  ) async {
-    if (state is PosLoaded) {
-      emit((state as PosLoaded).copyWith(syncStatus: 'syncing'));
-    }
-
-    // Sync from remote
-    final syncResult = await _productRepository.syncProducts(
-      event.organizationId,
-      event.branchId,
-    );
-
-    // optimized: if sync success, reload local
-    await syncResult.fold(
-      (failure) async {
-        if (state is PosLoaded) {
-          emit((state as PosLoaded).copyWith(syncStatus: 'error'));
-        }
-      },
-      (_) async {
-        final newLocal = await _productRepository.getAllProducts();
-        newLocal.fold((f) {}, (products) {
-          emit(PosLoaded(products: products, syncStatus: 'synced'));
-        });
-      },
-    );
-  }
-
   Future<void> _onTransactionSaved(
     PosTransactionSaved event,
     Emitter<PosState> emit,
   ) async {
+    // 1. Process Inventory Deductions (FEFO) locally
+    for (final item in event.transaction.items) {
+      final invResult = await _inventoryRepository.processSale(
+        productId: item.productId,
+        unitName: item.unitName ?? 'pcs',
+        quantity: item.quantity.toDouble(),
+        conversionFactor: 1.0, // TODO: Fetch from ProductConversionModel box
+        transactionId: event.transaction.id,
+        organizationId: event.transaction.organizationId,
+        branchId: event.transaction.branchId,
+      );
+
+      invResult.fold((failure) {
+        // Log failure but continue? Or fail the whole transaction?
+        // Web rules usually imply UI should prevent selling more than stock
+        // but if it happens, we might need a rollback logic.
+        // For now, we emit error state to notify UI.
+        emit(PosError("Inventory Error: ${failure.message}"));
+      }, (_) => null);
+    }
+
+    // 2. Save Transaction to outbox
     await _transactionRepository.saveTransaction(event.transaction);
-    // Automatically trigger sync check
+
+    // 3. Automatically trigger sync check for outbox
     add(PosSyncTransactionsRequested());
+
+    // 4. Finalize: Optional UI feedback or refresh
+    // We don't necessarily need to emit Loaded here unless products list changed significantly
+    // But since stock changed, a refresh helps.
+    add(const PosInitialDataRequested());
   }
 
   Future<void> _onSyncTransactionsRequested(
@@ -161,7 +144,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       final result = await _productRepository.searchProducts(event.query);
       result.fold(
         (failure) => emit(PosError(failure.message)),
-        (products) => emit((state as PosLoaded).copyWith(products: products)),
+        (products) => emit(PosLoaded(products: products)),
       );
     }
   }

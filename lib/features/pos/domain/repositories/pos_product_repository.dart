@@ -9,4 +9,9 @@ abstract class PosProductRepository {
   );
   Future<Either<Failure, List<ProductModel>>> searchProducts(String query);
   Future<Either<Failure, List<ProductModel>>> getAllProducts();
+  Future<Either<Failure, void>> syncInventoryBatches(
+    String organizationId,
+    String branchId,
+  );
+  Future<Either<Failure, void>> syncProductConversions(String organizationId);
 }

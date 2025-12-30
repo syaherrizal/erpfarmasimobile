@@ -8,6 +8,8 @@ import 'package:erpfarmasimobile/features/pos/presentation/pages/pos_profile_pag
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_context_cubit.dart';
 
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sync_cubit.dart';
+
 class PosRootPage extends StatefulWidget {
   const PosRootPage({super.key});
 
@@ -51,9 +53,13 @@ class _PosRootPageState extends State<PosRootPage> {
           providers: [
             BlocProvider(
               create: (context) =>
-                  sl<PosBloc>()..add(PosInitialDataRequested(orgId, branchId)),
+                  sl<PosBloc>()..add(const PosInitialDataRequested()),
             ),
             BlocProvider(create: (context) => sl<CartCubit>()),
+            BlocProvider(
+              create: (context) =>
+                  sl<ProductSyncCubit>()..sync(orgId, branchId),
+            ),
           ],
           child: Scaffold(
             body: IndexedStack(index: _selectedIndex, children: screens),

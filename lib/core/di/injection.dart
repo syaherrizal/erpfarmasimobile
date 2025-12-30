@@ -11,13 +11,20 @@ import 'package:erpfarmasimobile/features/app_mode/presentation/cubit/branch_con
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/organization/organization_context_cubit.dart';
 import 'package:erpfarmasimobile/features/auth/presentation/bloc/permission/permission_cubit.dart';
 import 'package:erpfarmasimobile/features/pos/data/models/hive/product_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/cart_item_model.dart';
 import 'package:erpfarmasimobile/features/pos/data/models/hive/transaction_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/inventory_batch_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/inventory_movement_model.dart';
+import 'package:erpfarmasimobile/features/pos/data/models/hive/product_conversion_model.dart';
 import 'package:erpfarmasimobile/features/pos/data/repositories/pos_product_repository_impl.dart';
 import 'package:erpfarmasimobile/features/pos/domain/repositories/pos_product_repository.dart';
+import 'package:erpfarmasimobile/features/pos/data/repositories/inventory_repository_impl.dart';
+import 'package:erpfarmasimobile/features/pos/domain/repositories/inventory_repository.dart';
 import 'package:erpfarmasimobile/features/pos/data/repositories/pos_transaction_repository_impl.dart';
 import 'package:erpfarmasimobile/features/pos/domain/repositories/pos_transaction_repository.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/bloc/pos/pos_bloc.dart';
 import 'package:erpfarmasimobile/features/pos/presentation/cubit/cart/cart_cubit.dart';
+import 'package:erpfarmasimobile/features/pos/presentation/cubit/sync/product_sync_cubit.dart';
 import 'package:erpfarmasimobile/features/owner/data/repositories/owner_repository_impl.dart';
 import 'package:erpfarmasimobile/features/owner/domain/repositories/owner_repository.dart';
 import 'package:erpfarmasimobile/features/owner/presentation/bloc/owner/owner_bloc.dart';
@@ -31,14 +38,26 @@ Future<void> init() async {
 
   // Register Adapters
   Hive.registerAdapter(ProductModelAdapter());
+  Hive.registerAdapter(CartItemModelAdapter());
   Hive.registerAdapter(TransactionItemModelAdapter());
   Hive.registerAdapter(TransactionModelAdapter());
+  Hive.registerAdapter(InventoryBatchModelAdapter());
+  Hive.registerAdapter(InventoryMovementModelAdapter());
+  Hive.registerAdapter(ProductConversionModelAdapter());
 
   // Open core boxes (more to be opened in features)
   await Hive.openBox(AppConstants.boxSettings);
   await Hive.openBox(AppConstants.boxAuth);
   await Hive.openBox<ProductModel>(AppConstants.boxProducts);
+  await Hive.openBox<CartItemModel>(AppConstants.boxCart);
   await Hive.openBox<TransactionModel>(AppConstants.boxTransactionQueue);
+  await Hive.openBox<InventoryBatchModel>(AppConstants.boxInventoryBatches);
+  await Hive.openBox<InventoryMovementModel>(
+    AppConstants.boxInventoryMovements,
+  );
+  await Hive.openBox<ProductConversionModel>(
+    AppConstants.boxProductConversions,
+  );
 
   // Supabase (Initialized in main.dart, but client accessible here if needed)
   sl.registerLazySingleton(() => Supabase.instance.client);
@@ -59,6 +78,8 @@ Future<void> init() async {
     () => PosProductRepositoryImpl(
       sl(),
       Hive.box<ProductModel>(AppConstants.boxProducts),
+      Hive.box<InventoryBatchModel>(AppConstants.boxInventoryBatches),
+      Hive.box<ProductConversionModel>(AppConstants.boxProductConversions),
     ),
   );
   sl.registerLazySingleton<PosTransactionRepository>(
@@ -67,10 +88,19 @@ Future<void> init() async {
       Hive.box<TransactionModel>(AppConstants.boxTransactionQueue),
     ),
   );
+  sl.registerLazySingleton<InventoryRepository>(
+    () => InventoryRepositoryImpl(
+      Hive.box<InventoryBatchModel>(AppConstants.boxInventoryBatches),
+      Hive.box<InventoryMovementModel>(AppConstants.boxInventoryMovements),
+    ),
+  );
 
-  // Bloc
-  sl.registerFactory(() => PosBloc(sl(), sl()));
-  sl.registerFactory(() => CartCubit());
+  // Bloc / Cubit
+  sl.registerFactory(() => PosBloc(sl(), sl(), sl()));
+  sl.registerFactory(
+    () => CartCubit(Hive.box<CartItemModel>(AppConstants.boxCart)),
+  );
+  sl.registerFactory(() => ProductSyncCubit(sl()));
 
   //! Features - Owner
   sl.registerLazySingleton<OwnerRepository>(() => OwnerRepositoryImpl(sl()));

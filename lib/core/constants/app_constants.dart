@@ -8,6 +8,9 @@ class AppConstants {
   static const String boxProducts = 'products_box';
   static const String boxCart = 'cart_box';
   static const String boxTransactionQueue = 'transaction_queue_box';
+  static const String boxInventoryBatches = 'inventory_batches_box';
+  static const String boxInventoryMovements = 'inventory_movements_box';
+  static const String boxProductConversions = 'product_conversions_box';
 
   // Supabase Table Names (schema public)
   static const String tableProfiles = 'profiles';
